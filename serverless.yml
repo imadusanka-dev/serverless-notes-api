@@ -1,0 +1,88 @@
+service: notes-app
+
+frameworkVersion: '2 || 3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  lambdaHashingVersion: 20201221
+  stage: dev
+  region: us-east-1
+ 
+functions:
+  authorizer:
+    handler: authorizer.handler
+    environment:
+      COGNITO_USER_POOL_ID: !Ref cognitoUserPool
+      COGNITO_USER_POOL_CLIENT_ID: !Ref cognitoUserPoolWebClient
+
+  createNote:
+    handler: handler.createNote
+    environment:
+      NOTES_TABLE_NAME: !Ref notesTable
+      AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - http:
+          method: post
+          path: notes
+          authorizer: authorizer
+
+  updateNote:
+    handler: handler.updateNote
+    environment:
+      NOTES_TABLE_NAME: !Ref notesTable
+      AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:updateItem
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - http:
+          method: put
+          path: notes/{id}
+          authorizer: authorizer
+
+  getNotes:
+    handler: handler.getNotes
+    environment:
+      NOTES_TABLE_NAME: !Ref notesTable
+      AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Scan
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - http:
+          method: get
+          path: notes
+          authorizer: authorizer
+
+  deleteNote:
+    handler: handler.deleteNote
+    environment:
+      NOTES_TABLE_NAME: !Ref notesTable
+      AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - http:
+          method: delete
+          path: notes/{id}
+          authorizer: authorizer
+
+plugins:
+  - serverless-iam-roles-per-function
+
+resources:
+  Resources:
+    ${file(resources.yml)}

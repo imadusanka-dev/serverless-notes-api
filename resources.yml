@@ -1,0 +1,54 @@
+# DynamoDB 
+notesTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: notes
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+    KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+
+# Cognito user pool
+cognitoUserPool:
+  Type: AWS::Cognito::UserPool
+  Properties:
+    UserPoolName: notes-app-userpool
+    UsernameAttributes:
+      - email
+    AccountRecoverySetting:
+      RecoveryMechanisms:
+        - Name: verified_email
+          Priority: 1
+    EmailConfiguration:
+      EmailSendingAccount: COGNITO_DEFAULT
+
+# Cognito user pool web client
+cognitoUserPoolWebClient:
+  Type: AWS::Cognito::UserPoolClient
+  Properties:
+    UserPoolId: !Ref cognitoUserPool
+    ClientName: notes-app-userpool-web-client
+    AllowedOAuthFlowsUserPoolClient: true
+    SupportedIdentityProviders:
+      - COGNITO
+    AllowedOAuthScopes:
+      - phone
+      - email
+      - openid
+      - profile
+    AllowedOAuthFlows:
+      - implicit
+    CallbackURLs:
+      - http://localhost:3000
+
+# Cognito user pool domain
+cognitoUserPoolDomain:
+  Type: AWS::Cognito::UserPoolDomain
+  Properties:
+    Domain: my-notes-app-domain
+    UserPoolId: !Ref cognitoUserPool
+
+
