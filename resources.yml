@@ -2,7 +2,7 @@
 notesTable:
   Type: AWS::DynamoDB::Table
   Properties:
-    TableName: notes
+    TableName: notes-${self:provider.stage}
     BillingMode: PAY_PER_REQUEST
     AttributeDefinitions:
       - AttributeName: id
@@ -15,7 +15,7 @@ notesTable:
 cognitoUserPool:
   Type: AWS::Cognito::UserPool
   Properties:
-    UserPoolName: notes-app-userpool
+    UserPoolName: notes-app-userpool-${self:provider.stage}
     UsernameAttributes:
       - email
     AccountRecoverySetting:
@@ -48,7 +48,7 @@ cognitoUserPoolWebClient:
 cognitoUserPoolDomain:
   Type: AWS::Cognito::UserPoolDomain
   Properties:
-    Domain: my-notes-app-domain
+    Domain: my-notes-app-domain-${self:provider.stage}
     UserPoolId: !Ref cognitoUserPool
 
 
